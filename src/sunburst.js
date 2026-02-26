@@ -72,9 +72,7 @@ export default Kapsule({
 
         d3Partition().padding(0)(hierData);
 
-        // Recalculate radial level coordinates to support variable-level slices.
-        // A node can span multiple levels by returning a value > 1 from `levelSpan`.
-        hierData.eachBefore(d => {
+       hierData.eachBefore(d => {
           const rawSpan = +levelSpanOf(d.data, d.parent);
           d.__levelSpan = Number.isFinite(rawSpan) && rawSpan > 0 ? rawSpan : 1;
           d.__level0 = d.parent ? d.parent.__level1 : 0;
