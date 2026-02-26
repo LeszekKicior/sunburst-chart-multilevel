@@ -1,13 +1,12 @@
-Sunburst Chart
+Sunburst Chart Multilevel
 ==============
 
-[![NPM package][npm-img]][npm-url]
-[![Build Size][build-size-img]][build-size-url]
-[![NPM Downloads][npm-downloads-img]][npm-downloads-url]
+# What is this?
+This is a fork of [sunburst-chart](https://github.com/vasturiano/sunburst-chart) by Vasturiano, adding support for multi-level nodes - that is, angular segments of the chart that span 2 or more "levels".
 
-<p align="center">
-     <a href="https://vasturiano.github.io/sunburst-chart/example/flare/"><img width="80%" src="https://vasturiano.github.io/sunburst-chart/example/flare/screenshot.png"></a>
-</p>
+I'm not sure about the utility of this, but I needed it for a thing I was working on.
+
+---
 
 An interactive sunburst chart for representing hierarchical data, where each data node of a tree is represented by an annular segment within multi-layered rings. 
 
@@ -18,23 +17,16 @@ By default the arcs areas are linearly proportional to their data values, result
 
 For improved performance, arcs smaller than a given threshold (`minSliceAngle`) are excluded from the DOM, allowing for representation of large data sets while maintaining a smooth interaction. See [here for an example](https://vasturiano.github.io/sunburst-chart/example/large-data) of a randomly generated large data structure.
 
-See also the [Icicle](https://github.com/vasturiano/icicle-chart), [Circle Pack](https://github.com/vasturiano/circlepack-chart) and [Treemap](https://github.com/vasturiano/treemap-chart) charts.
 
-And check out the [React bindings](https://github.com/vasturiano/react-sunburst-chart).
+## Support This Project
 
-## ❤️ Support This Project
-
-If you find this module useful and would like to support its development, you can [buy me a ☕](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=L398E7PKP47E8&currency_code=USD&source=url). Your contributions help keep open-source sustainable!
+If you find this module useful, you can [buy a ☕](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=L398E7PKP47E8&currency_code=USD&source=url) for the original creator!
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=L398E7PKP47E8&currency_code=USD&source=url)
 
 ## Quick start
 
 ```js
 import Sunburst from 'sunburst-chart';
-```
-or using a *script* tag
-```html
-<script src="//cdn.jsdelivr.net/npm/sunburst-chart"></script>
 ```
 then
 ```js
@@ -52,6 +44,7 @@ const myChart = new Sunburst(<myDOMElement>);
 | <b>children</b>([<i>string</i> or <i>fn</i>]) | Getter/setter for a data node's children accessor, used to establish the hierarchical relationship between nodes. Supports either a <i>string</i> indicating the object's property name, or a `function(node)` which should return an array of nodes. | `children` |
 | <b>label</b>([<i>string</i> or <i>fn</i>]) | Getter/setter for a node object label accessor, used to display labels on the arcs and their tooltips. | `name` |
 | <b>size</b>([<i>string</i> or <i>fn</i>]) | Getter/setter for a node object size accessor, used to compute the angles of the arcs. | `value` |
+| <b>levelSpan</b>([<i>number</i> or <i>fn</i>]) | Getter/setter for a node object's radial level span accessor, used to compute the radial thickness of arcs. Values greater than `1` make a node occupy multiple concentric levels. Invalid or non-positive values fallback to `1`. | `1` |
 | <b>color</b>([<i>string</i> or <i>fn</i>]) | Getter/setter for a node object color accessor, used to color fill the arcs. | <i>grey</i> |
 | <b>strokeColor</b>([<i>string</i> or <i>fn</i>]) | Getter/setter for a node object stroke color accessor, used to color the contour of the arcs. | <i>white</i> |
 | <b>nodeClassName</b>([<i>string</i> or <i>fn</i>]) | Getter/setter for a node object classname accessor. Determines the CSS class(es) to apply to each slice node. | - |
@@ -99,11 +92,3 @@ const myChart = new Sunburst(<myDOMElement>);
   ]
 }
 ```
-
-
-[npm-img]: https://img.shields.io/npm/v/sunburst-chart
-[npm-url]: https://npmjs.org/package/sunburst-chart
-[build-size-img]: https://img.shields.io/bundlephobia/minzip/sunburst-chart
-[build-size-url]: https://bundlephobia.com/result?p=sunburst-chart
-[npm-downloads-img]: https://img.shields.io/npm/dt/sunburst-chart
-[npm-downloads-url]: https://www.npmtrends.com/sunburst-chart

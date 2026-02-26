@@ -1,6 +1,6 @@
 {
-  "name": "sunburst-chart",
-  "version": "1.21.4",
+  "name": "@ileonichwiesz/sunburst-chart",
+  "version": "1.21.5",
   "description": "Sunburst interactive chart web component for visualizing hierarchical data",
   "license": "MIT",
   "type": "module",
@@ -16,9 +16,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vasturiano/sunburst-chart.git"
+    "url": "git+https://github.com/LeszekKicior/sunburst-chart-multilevel.git"
   },
-  "homepage": "https://github.com/vasturiano/sunburst-chart",
+  "homepage": "https://github.com/LeszekKicior/sunburst-chart-multilevel",
   "keywords": [
     "d3",
     "d3-module",
@@ -27,12 +27,13 @@
     "graph",
     "svg"
   ],
-  "author": {
-    "name": "Vasco Asturiano",
+  "author": "LeszekKicior (https://github.com/LeszekKicior)",
+  "contributors": [{
+    "name": "Original author: Vasco Asturiano",
     "url": "https://github.com/vasturiano"
-  },
+  }],
   "bugs": {
-    "url": "https://github.com/vasturiano/sunburst-chart/issues"
+
   },
   "files": [
     "dist/**/*"

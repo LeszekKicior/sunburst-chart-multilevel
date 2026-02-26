@@ -24,6 +24,7 @@ export default Kapsule({
     label: { default: d => d.name },
     labelOrientation: { default: 'auto' }, // angular, radial, auto
     size: { default: 'value', onChange(_, state) { state.needsReparse = true }},
+    levelSpan: { default: 1, onChange(_, state) { state.needsReparse = true }},
     color: { default: d => 'lightgrey' },
     strokeColor: { default: d => 'white' },
     nodeClassName: {}, // Additional css classes to add on each slice node
@@ -63,6 +64,7 @@ export default Kapsule({
       if (state.data) {
         const hierData = d3Hierarchy(state.data, accessorFn(state.children))
           .sum(accessorFn(state.size));
+        const levelSpanOf = accessorFn(state.levelSpan);
 
         if (state.sort) {
           hierData.sort(state.sort);
@@ -70,15 +72,44 @@ export default Kapsule({
 
         d3Partition().padding(0)(hierData);
 
+       hierData.eachBefore(d => {
+          const rawSpan = +levelSpanOf(d.data, d.parent);
+          d.__levelSpan = Number.isFinite(rawSpan) && rawSpan > 0 ? rawSpan : 1;
+          d.__level0 = d.parent ? d.parent.__level1 : 0;
+          d.__level1 = d.__level0 + d.__levelSpan;
+        });
+
+        hierData.eachAfter(d => {
+          d.__subtreeLevel1 = Math.max(
+            d.__level1,
+            ...((d.children || []).map(child => child.__subtreeLevel1))
+          );
+        });
+
+        const maxLevel = Math.max(...hierData.descendants().map(d => d.__level1));
+        const levelToY = scaleLinear().domain([0, maxLevel]).range([0, 1]);
+
+        hierData.descendants().forEach(d => {
+          d.y0 = levelToY(d.__level0);
+          d.y1 = levelToY(d.__level1);
+        });
+
+        state.rootLevelSpan = hierData.__level1 - hierData.__level0;
+        state.maxLevel = maxLevel;
+
         if (state.excludeRoot) {
           // re-scale y values if excluding root
           const yScale = scaleLinear()
-            .domain([hierData.y1 - hierData.y0, 1]);
+            .domain([state.rootLevelSpan, state.maxLevel]);
 
           hierData.descendants().forEach(d => {
-            d.y0 = yScale(d.y0);
-            d.y1 = yScale(d.y1);
+            d.y0 = yScale(d.__level0);
+            d.y1 = yScale(d.__level1);
           });
+
+          state.levelToY = level => yScale(level);
+        } else {
+          state.levelToY = level => levelToY(level);
         }
 
         hierData.descendants().forEach((d, i) => {
@@ -149,7 +180,9 @@ export default Kapsule({
 
     const focusD =
       (state.focusOnNode && state.focusOnNode.__dataNode.y0 >= 0 && state.focusOnNode.__dataNode)
-      || { x0: 0, x1: 1, y0: 0, y1: 1 };
+      || { x0: 0, x1: 1, y0: 0, y1: 1, __level0: state.excludeRoot ? state.rootLevelSpan : 0, __subtreeLevel1: state.maxLevel };
+
+    const focusLevel0 = focusD.__level0 != null ? focusD.__level0 : (state.excludeRoot ? state.rootLevelSpan : 0);
 
     const slice = state.canvas.selectAll('.slice')
       .data(
@@ -158,7 +191,7 @@ export default Kapsule({
             d.x1 > focusD.x0
             && d.x0 < focusD.x1
             && (d.x1-d.x0)/(focusD.x1-focusD.x0) > state.minSliceAngle/360
-            && (!state.maxLevels || d.depth - (focusD.depth || (state.excludeRoot ? 1 : 0)) < state.maxLevels)
+            && (!state.maxLevels || d.__level0 - focusLevel0 < state.maxLevels)
             && (d.y0 >=0 || focusD.parent) // hide negative layers on top level
           ),
         d => d.id
@@ -170,11 +203,12 @@ export default Kapsule({
     const nodeClassNameOf = accessorFn(state.nodeClassName);
     const transition = d3Transition().duration(state.transitionDuration);
 
-    const levelYDelta = state.layoutData[0].y1 - state.layoutData[0].y0;
-    const maxY = Math.min(1, focusD.y0 + levelYDelta * Math.min(
-      focusD.hasOwnProperty('height') ? focusD.height + 1 : Infinity,
-      state.maxLevels || Infinity
-    ));
+    const focusSubtreeLevel1 = focusD.__subtreeLevel1 != null ? focusD.__subtreeLevel1 : state.maxLevel;
+    const maxLevel = Math.min(
+      focusSubtreeLevel1,
+      focusLevel0 + (state.maxLevels || Infinity)
+    );
+    const maxY = Math.min(1, state.levelToY(maxLevel));
 
     // Apply zoom
     state.svg.transition(transition)

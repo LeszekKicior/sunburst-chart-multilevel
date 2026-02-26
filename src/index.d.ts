@@ -48,6 +48,8 @@ declare class SunburstChart {
   label(textAccessor: NodeAccessor<string>): SunburstChart;
   size(): NodeAccessor<string>;
   size(sizeAccessor: NodeAccessor<string>): SunburstChart;
+  levelSpan(): NodeAccessor<number>;
+  levelSpan(levelSpanAccessor: NodeAccessor<number>): SunburstChart;
   color(): NodeAccessor<string>;
   color(colorAccessor: NodeAccessor<string>): SunburstChart;
   strokeColor(): NodeAccessor<string>;
