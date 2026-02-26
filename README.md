@@ -2,7 +2,7 @@ Sunburst Chart Multilevel
 ==============
 
 # What is this?
-This is a fork of [sunburst-chart](https://github.com/vasturiano/sunburst-chart) by Vasturiano, adding support for multi-level nodes - that is, segments of the chart can span 2 or more levels.
+This is a fork of [sunburst-chart](https://github.com/vasturiano/sunburst-chart) by Vasturiano, adding support for multi-level nodes - that is, angular segments of the chart that span 2 or more "levels".
 
 I'm not sure about the utility of this, but I needed it for a thing I was working on.
 
