@@ -1,0 +1,62 @@
+<head>
+  <!-- <script src="//cdn.jsdelivr.net/npm/sunburst-chart"></script> -->
+  <script src="../../dist/sunburst-chart.js"></script>
+
+  <style>body { margin: 0 }</style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+    const data = {
+      name: 'root',
+      children: [
+        {
+          name: 'regular branch',
+          color: '#7fb3d5',
+          children: [
+            { name: 'r-1', color: '#aed6f1', value: 2 },
+            { name: 'r-2', color: '#85c1e9', value: 1 }
+          ]
+        },
+        {
+          name: 'spans 3 levels',
+          color: '#f1948a',
+          levelSpan: 2,
+          children: [
+            {
+              name: 'child after span',
+              color: '#f5b7b1',
+              value: 5
+            }
+          ]
+        },
+        {
+          name: 'another regular branch',
+          color: '#82e0aa',
+          children: [
+            { name: 'g-1', color: '#abebc6', children: [
+                { name: 'g-1-1', color: '#abebc6', value: 1 },
+                { name: 'g-1-2', color: '#58d68d', value: 1 }
+            ] },
+            { name: 'g-2', color: '#58d68d', children: [
+                { name: 'g-2-1', color: '#abebc6', value: 1 },
+                { name: 'g-2-2', color: '#58d68d', children: [
+                    { name: 'g-2-2-1', color: '#abebc6', value: 1 },
+                    { name: 'g-2-2-2', color: '#58d68d', value: 1 }
+                ] }
+            ] }
+          ]
+        }
+      ]
+    };
+
+    new Sunburst(document.getElementById('chart'))
+      .data(data)
+      .size('value')
+      .color('color')
+      .levelSpan(d => d.levelSpan || 1)
+      .radiusScaleExponent(1)
+      .tooltipContent((d, node) => `Level span: <i>${d.levelSpan || 1}</i><br>Value: <i>${node.value}</i>`);
+  </script>
+</body>
