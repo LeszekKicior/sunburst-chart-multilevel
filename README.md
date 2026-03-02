@@ -6,6 +6,12 @@ This is a fork of [sunburst-chart](https://github.com/vasturiano/sunburst-chart)
 
 I'm not sure about the utility of this, but I needed it for a thing I was working on.
 
+It allows for making charts like this:
+<p>
+<img width="598" height="675" alt="Screenshot 2026-03-02 at 09 01 04" src="https://github.com/user-attachments/assets/b4273d8e-1bca-496b-96d5-96e703ad22e1" />
+</p>
+
+
 ---
 
 An interactive sunburst chart for representing hierarchical data, where each data node of a tree is represented by an annular segment within multi-layered rings. 
