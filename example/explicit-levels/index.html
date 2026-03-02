@@ -1,0 +1,88 @@
+<head>
+  <!-- <script src="//cdn.jsdelivr.net/npm/sunburst-chart"></script> -->
+  <script src="../../dist/@ileonichwiesz/sunburst-chart.js"></script>
+
+  <style>body { margin: 0 }</style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+    // Example demonstrating the `level` prop which allows manual control
+    // of node levels. Levels don't have to increment by 1 - they can have
+    // arbitrary values (e.g., 10, 20, 50) as long as children have higher
+    // levels than their parents.
+    
+    const data = {
+      name: 'Root',
+      level: 10,
+      color: '#4A90E2',
+      children: [{
+        name: 'Branch A',
+        level: 20,
+        color: '#E94B3C',
+        children: [{
+          name: 'Leaf A1',
+          level: 50,  // Big jump from 20 to 50
+          color: '#50E3C2',
+          value: 15
+        }, {
+          name: 'Leaf A2',
+          level: 50,
+          color: '#F5A623',
+          value: 25
+        }]
+      }, {
+        name: 'Branch B',
+        level: 30,  // Different increment from Branch A
+        color: '#7ED321',
+        children: [{
+          name: 'Sub-branch B1',
+          level: 35,  // Small increment
+          color: '#BD10E0',
+          children: [{
+            name: 'Leaf B1a',
+            level: 60,  // Another big jump
+            color: '#9013FE',
+            value: 10
+          }, {
+            name: 'Leaf B1b',
+            level: 60,
+            color: '#4A148C',
+            value: 20
+          }]
+        }, {
+          name: 'Leaf B2',
+          level: 40,  // Skips level 35
+          color: '#F8E71C',
+          value: 30
+        }]
+      }, {
+        name: 'Branch C',
+        level: 25,  // Between Branch A and Branch B
+        color: '#D0021B',
+        children: [{
+          name: 'Leaf C1',
+          level: 55,
+          color: '#8B572A',
+          value: 18
+        }]
+      }]
+    };
+
+    new Sunburst(document.getElementById('chart'))
+      .data(data)
+      .level('level')  // Use the 'level' property from each node
+      .size('value')
+      .color('color')
+      .tooltipContent((d, node) => {
+        const levelInfo = d.level !== undefined 
+          ? `Level: ${d.level}<br>` 
+          : '';
+        const valueInfo = node.value 
+          ? `Value: ${node.value}` 
+          : `Children: ${(d.children || []).length}`;
+        return `${levelInfo}${valueInfo}`;
+      });
+  </script>
+</body>
