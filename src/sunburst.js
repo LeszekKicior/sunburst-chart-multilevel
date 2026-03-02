@@ -24,6 +24,7 @@ export default Kapsule({
     label: { default: d => d.name },
     labelOrientation: { default: 'auto' }, // angular, radial, auto
     size: { default: 'value', onChange(_, state) { state.needsReparse = true }},
+    level: { onChange(_, state) { state.needsReparse = true }},
     levelSpan: { default: 1, onChange(_, state) { state.needsReparse = true }},
     color: { default: d => 'lightgrey' },
     strokeColor: { default: d => 'white' },
@@ -64,6 +65,7 @@ export default Kapsule({
       if (state.data) {
         const hierData = d3Hierarchy(state.data, accessorFn(state.children))
           .sum(accessorFn(state.size));
+        const levelOf = accessorFn(state.level);
         const levelSpanOf = accessorFn(state.levelSpan);
 
         if (state.sort) {
@@ -73,10 +75,20 @@ export default Kapsule({
         d3Partition().padding(0)(hierData);
 
        hierData.eachBefore(d => {
-          const rawSpan = +levelSpanOf(d.data, d.parent);
-          d.__levelSpan = Number.isFinite(rawSpan) && rawSpan > 0 ? rawSpan : 1;
           d.__level0 = d.parent ? d.parent.__level1 : 0;
-          d.__level1 = d.__level0 + d.__levelSpan;
+          
+          // Check if node has explicit level defined
+          const explicitLevel = levelOf(d.data, d.parent);
+          if (explicitLevel != null && Number.isFinite(+explicitLevel)) {
+            // Use explicit level
+            d.__level1 = +explicitLevel;
+            d.__levelSpan = d.__level1 - d.__level0;
+          } else {
+            // Use levelSpan (default or specified)
+            const rawSpan = +levelSpanOf(d.data, d.parent);
+            d.__levelSpan = Number.isFinite(rawSpan) && rawSpan > 0 ? rawSpan : 1;
+            d.__level1 = d.__level0 + d.__levelSpan;
+          }
         });
 
         hierData.eachAfter(d => {
