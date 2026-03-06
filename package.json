@@ -1,6 +1,6 @@
 {
   "name": "@ileonichwiesz/sunburst-chart",
-  "version": "1.21.6",
+  "version": "1.21.7",
   "description": "Sunburst interactive chart web component for visualizing hierarchical data",
   "license": "MIT",
   "type": "module",
@@ -10,9 +10,12 @@
   "module": "dist/sunburst-chart.mjs",
   "types": "dist/sunburst-chart.d.ts",
   "exports": {
-    "types": "./dist/sunburst-chart.d.ts",
-    "umd": "./dist/sunburst-chart.min.js",
-    "default": "./dist/sunburst-chart.mjs"
+    ".": {
+      "types": "./dist/sunburst-chart.d.ts",
+      "import": "./dist/sunburst-chart.mjs",
+      "default": "./dist/sunburst-chart.mjs"
+    },
+    "./package.json": "./package.json"
   },
   "repository": {
     "type": "git",

@@ -7,6 +7,7 @@ import dts from 'rollup-plugin-dts';
 
 import pkg from './package.json' with { type: 'json' };
 const { name, homepage, version, dependencies, peerDependencies } = pkg;
+const packageBaseName = name.includes('/') ? name.split('/').pop() : name;
 
 const umdConf = {
   format: 'umd',
@@ -20,12 +21,12 @@ export default [
     output: [
       { // umd
         ...umdConf,
-        file: `dist/${name}.js`,
+        file: `dist/${packageBaseName}.js`,
         sourcemap: true,
       },
       { // minify
         ...umdConf,
-        file: `dist/${name}.min.js`,
+        file: `dist/${packageBaseName}.min.js`,
         plugins: [terser({
           output: { comments: '/Version/' }
         })]
@@ -43,7 +44,7 @@ export default [
     output: [
       {
         format: 'es',
-        file: `dist/${name}.mjs`
+        file: `dist/${packageBaseName}.mjs`
       }
     ],
     external: [...Object.keys(dependencies || {}), ...Object.keys(peerDependencies || {})],
@@ -55,7 +56,7 @@ export default [
   { // expose TS declarations
     input: 'src/index.d.ts',
     output: [{
-      file: `dist/${name}.d.ts`,
+      file: `dist/${packageBaseName}.d.ts`,
       format: 'es'
     }],
     plugins: [dts()]
