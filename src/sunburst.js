@@ -35,6 +35,7 @@ export default Kapsule({
     centerRadius: { default: 0.1 },
     radiusScaleExponent: { default: 0.5 }, // radius decreases quadratically outwards to preserve area
     showLabels: { default: true },
+    fontSize: { default: TEXT_FONTSIZE },
     handleNonFittingLabel: {},
     tooltipContent: { default: d => '', triggerUpdate: false },
     tooltipTitle: { default: null, triggerUpdate: false },
@@ -155,7 +156,7 @@ export default Kapsule({
     state.svg = el.append('svg');
     state.canvas = state.svg.append('g')
       .style('font-family', 'sans-serif')
-      .style('font-size', `${TEXT_FONTSIZE}px`);
+      .style('font-size', `${state.fontSize}px`);
 
     state.tooltip = new Tooltip(el);
 
@@ -187,6 +188,12 @@ export default Kapsule({
       .style('width', state.width + 'px')
       .style('height', state.height + 'px')
       .attr('viewBox', `${-state.width/2} ${-state.height/2} ${state.width} ${state.height}`);
+
+    const fontSize = Number.isFinite(+state.fontSize) && +state.fontSize > 0
+      ? +state.fontSize
+      : TEXT_FONTSIZE;
+
+    state.canvas.style('font-size', `${fontSize}px`);
 
     if (!state.layoutData) return;
 
@@ -426,14 +433,14 @@ export default Kapsule({
     }
 
     function angularTextFits(d) {
-      return measureTextWidth(getNodeLabel(d), TEXT_FONTSIZE, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelAngularSpace(d);
+      return measureTextWidth(getNodeLabel(d), fontSize, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelAngularSpace(d);
     }
 
     function radialTextFits(d) {
       const availableHeight = state.radiusScale(d.y0) * (state.angleScale(d.x1) - state.angleScale(d.x0));
-      if (availableHeight < TEXT_FONTSIZE + TEXT_STROKE_WIDTH) return false; // not enough angular space
+      if (availableHeight < fontSize + TEXT_STROKE_WIDTH) return false; // not enough angular space
 
-      return measureTextWidth(getNodeLabel(d), TEXT_FONTSIZE, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelRadialSpace(d);
+      return measureTextWidth(getNodeLabel(d), fontSize, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelRadialSpace(d);
     }
 
     function autoPickLabelOrientation(d) {
@@ -447,7 +454,7 @@ export default Kapsule({
 
       if (!orientation) {
         const availableArcWidth = state.radiusScale(d.y0) * (state.angleScale(d.x1) - state.angleScale(d.x0));
-        if (availableArcWidth < TEXT_FONTSIZE + TEXT_STROKE_WIDTH) {
+        if (availableArcWidth < fontSize + TEXT_STROKE_WIDTH) {
           // not enough space for radial text, choose angular
           orientation = 'angular';
         } else {

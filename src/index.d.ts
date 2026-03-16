@@ -75,6 +75,8 @@ declare class SunburstChart {
 
   showLabels(): boolean;
   showLabels(show: boolean): SunburstChart;
+  fontSize(): number;
+  fontSize(size: number): SunburstChart;
   labelOrientation(): Orientation;
   labelOrientation(orientation: Orientation): SunburstChart;
   handleNonFittingLabel(): NonFittingLabelFn | null;
