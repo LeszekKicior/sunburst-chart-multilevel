@@ -11,6 +11,7 @@ import Tooltip from 'float-tooltip';
 import  { measureTextWidth } from './text';
 
 const TEXT_FONTSIZE = 12;
+const MIN_FONT_SIZE = 8;
 const TEXT_STROKE_WIDTH = 5;
 
 export default Kapsule({
@@ -338,43 +339,60 @@ export default Kapsule({
 
     // Label processing
     const getLabelMeta = d => {
-      if (!state.showLabels) return { label: '', fits: false };
+      if (!state.showLabels) return { label: '', fits: false, fontSize };
 
       const isRadial = (state.labelOrientation === 'auto'
         ? autoPickLabelOrientation(d)
         : state.labelOrientation) !== 'angular';
 
       let label = getNodeLabel(d);
-      let fits = isRadial ? radialTextFits(d) : angularTextFits(d);
+      let labelFontSize = fontSize;
+      let fits = isRadial
+        ? radialTextFits(d, label, labelFontSize)
+        : angularTextFits(d, label, labelFontSize);
 
       if (!fits && state.handleNonFittingLabel) {
         const availableSpace = isRadial ? getAvailableLabelRadialSpace(d) : getAvailableLabelAngularSpace(d);
         const newLabel = state.handleNonFittingLabel(label, availableSpace, d);
         if (newLabel) {
           label = newLabel;
-          fits = true;
+          fits = isRadial
+            ? radialTextFits(d, label, labelFontSize)
+            : angularTextFits(d, label, labelFontSize);
         }
       }
-      return { isRadial, label, fits };
+
+      while (!fits && labelFontSize > MIN_FONT_SIZE) {
+        labelFontSize -= 1;
+        fits = isRadial
+          ? radialTextFits(d, label, labelFontSize)
+          : angularTextFits(d, label, labelFontSize);
+      }
+
+      return { isRadial, label, fits, fontSize: labelFontSize };
     };
     const labelMetaCache = new Map();
+
+    allSlices.each(d => {
+      labelMetaCache.set(d, getLabelMeta(d));
+    });
 
     // Show/hide labels
     allSlices.select('.angular-label')
       .transition(transition)
         .styleTween('display', d => () => {
-          labelMetaCache.set(d, getLabelMeta(d)); // cache label settings
-
           const { isRadial, fits } = labelMetaCache.get(d);
           return computeAngularLabels && !isRadial && fits ? null : 'none';
-        });
+        })
+        .styleTween('font-size', d => () => `${labelMetaCache.get(d).fontSize}px`);
 
     allSlices.select('.radial-label')
       .transition(transition)
         .styleTween('display', d => () => {
           const { isRadial, fits } = labelMetaCache.get(d);
           return computeRadialLabels && isRadial && fits ? null : 'none';
-        });
+        })
+        .styleTween('font-size', d => () => `${labelMetaCache.get(d).fontSize}px`);
 
     // Set labels
     computeAngularLabels && allSlices.selectAll('text.angular-label').selectAll('textPath')
@@ -432,15 +450,15 @@ export default Kapsule({
       return label == null ? '' : String(label);
     }
 
-    function angularTextFits(d) {
-      return measureTextWidth(getNodeLabel(d), fontSize, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelAngularSpace(d);
+    function angularTextFits(d, label = getNodeLabel(d), textFontSize = fontSize) {
+      return measureTextWidth(label, textFontSize, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelAngularSpace(d);
     }
 
-    function radialTextFits(d) {
+    function radialTextFits(d, label = getNodeLabel(d), textFontSize = fontSize) {
       const availableHeight = state.radiusScale(d.y0) * (state.angleScale(d.x1) - state.angleScale(d.x0));
-      if (availableHeight < fontSize + TEXT_STROKE_WIDTH) return false; // not enough angular space
+      if (availableHeight < textFontSize + TEXT_STROKE_WIDTH) return false; // not enough angular space
 
-      return measureTextWidth(getNodeLabel(d), fontSize, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelRadialSpace(d);
+      return measureTextWidth(label, textFontSize, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelRadialSpace(d);
     }
 
     function autoPickLabelOrientation(d) {
