@@ -341,35 +341,53 @@ export default Kapsule({
     const getLabelMeta = d => {
       if (!state.showLabels) return { label: '', fits: false, fontSize };
 
-      const isRadial = (state.labelOrientation === 'auto'
-        ? autoPickLabelOrientation(d)
-        : state.labelOrientation) !== 'angular';
-
       let label = getNodeLabel(d);
-      let labelFontSize = fontSize;
-      let fits = isRadial
-        ? radialTextFits(d, label, labelFontSize)
-        : angularTextFits(d, label, labelFontSize);
+      const orientationOrder = getOrientationOrder(d);
 
-      if (!fits && state.handleNonFittingLabel) {
-        const availableSpace = isRadial ? getAvailableLabelRadialSpace(d) : getAvailableLabelAngularSpace(d);
+      const tryFit = labelText => {
+        for (const orientation of orientationOrder) {
+          const isRadial = orientation === 'radial';
+          let labelFontSize = fontSize;
+          let fits = isRadial
+            ? radialTextFits(d, labelText, labelFontSize)
+            : angularTextFits(d, labelText, labelFontSize);
+
+          while (!fits && labelFontSize > MIN_FONT_SIZE) {
+            labelFontSize -= 1;
+            fits = isRadial
+              ? radialTextFits(d, labelText, labelFontSize)
+              : angularTextFits(d, labelText, labelFontSize);
+          }
+
+          if (fits) {
+            return { isRadial, label: labelText, fits: true, fontSize: labelFontSize };
+          }
+        }
+
+        const fallbackOrientation = orientationOrder[0] || 'angular';
+        return {
+          isRadial: fallbackOrientation === 'radial',
+          label: labelText,
+          fits: false,
+          fontSize: MIN_FONT_SIZE
+        };
+      };
+
+      let fitMeta = tryFit(label);
+
+      if (!fitMeta.fits && state.handleNonFittingLabel) {
+        const preferredOrientation = orientationOrder[0] || 'angular';
+        const availableSpace = preferredOrientation === 'radial'
+          ? getAvailableLabelRadialSpace(d)
+          : getAvailableLabelAngularSpace(d);
         const newLabel = state.handleNonFittingLabel(label, availableSpace, d);
         if (newLabel) {
           label = newLabel;
-          fits = isRadial
-            ? radialTextFits(d, label, labelFontSize)
-            : angularTextFits(d, label, labelFontSize);
+          fitMeta = tryFit(label);
         }
       }
 
-      while (!fits && labelFontSize > MIN_FONT_SIZE) {
-        labelFontSize -= 1;
-        fits = isRadial
-          ? radialTextFits(d, label, labelFontSize)
-          : angularTextFits(d, label, labelFontSize);
-      }
-
-      return { isRadial, label, fits, fontSize: labelFontSize };
+      return fitMeta;
     };
     const labelMetaCache = new Map();
 
@@ -483,6 +501,19 @@ export default Kapsule({
       }
 
       return orientation;
+    }
+
+    function getOrientationOrder(d) {
+      if (state.labelOrientation === 'angular') return ['angular'];
+      if (state.labelOrientation === 'radial') return ['radial'];
+
+      const pickedOrientation = autoPickLabelOrientation(d);
+      if (pickedOrientation === 'angular') return ['angular', 'radial'];
+      if (pickedOrientation === 'radial') return ['radial', 'angular'];
+
+      const angle = ((state.angleScale(d.x0) + state.angleScale(d.x1)) / 2)%Math.PI;
+      const preferRadial = angle > Math.PI / 4 && angle < Math.PI * 3/4;
+      return preferRadial ? ['radial', 'angular'] : ['angular', 'radial'];
     }
 
     function getNodeStack(d) {
