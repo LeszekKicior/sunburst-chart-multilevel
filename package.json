@@ -1,6 +1,6 @@
 {
   "name": "@ileonichwiesz/sunburst-chart",
-  "version": "1.21.11",
+  "version": "1.21.12",
   "description": "Sunburst interactive chart web component for visualizing hierarchical data",
   "license": "MIT",
   "type": "module",
