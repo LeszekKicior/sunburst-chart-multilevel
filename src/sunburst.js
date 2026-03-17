@@ -229,6 +229,8 @@ export default Kapsule({
       focusLevel0 + (state.maxLevels || Infinity)
     );
     const maxY = Math.min(1, state.levelToY(maxLevel));
+    const labelAngleScale = state.angleScale.copy().domain([focusD.x0, focusD.x1]);
+    const labelRadiusScale = state.radiusScale.copy().domain([focusD.y0, maxY]);
 
     // Apply zoom
     state.svg.transition(transition)
@@ -454,13 +456,13 @@ export default Kapsule({
     }
 
     function getAvailableLabelAngularSpace(d) {
-      const deltaAngle = state.angleScale(d.x1) - state.angleScale(d.x0);
-      const r = Math.max(0, (state.radiusScale(d.y0) + state.radiusScale(d.y1)) / 2);
+      const deltaAngle = labelAngleScale(d.x1) - labelAngleScale(d.x0);
+      const r = Math.max(0, (labelRadiusScale(d.y0) + labelRadiusScale(d.y1)) / 2);
       return r * deltaAngle;
     }
 
     function getAvailableLabelRadialSpace(d) {
-      return state.radiusScale(d.y1) - state.radiusScale(d.y0);
+      return labelRadiusScale(d.y1) - labelRadiusScale(d.y0);
     }
 
     function getNodeLabel(d) {
@@ -473,7 +475,7 @@ export default Kapsule({
     }
 
     function radialTextFits(d, label = getNodeLabel(d), textFontSize = fontSize) {
-      const availableHeight = state.radiusScale(d.y0) * (state.angleScale(d.x1) - state.angleScale(d.x0));
+      const availableHeight = labelRadiusScale(d.y0) * (labelAngleScale(d.x1) - labelAngleScale(d.x0));
       if (availableHeight < textFontSize + TEXT_STROKE_WIDTH) return false; // not enough angular space
 
       return measureTextWidth(label, textFontSize, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelRadialSpace(d);
@@ -481,7 +483,7 @@ export default Kapsule({
 
     function autoPickLabelOrientation(d) {
       // prefer mode that keeps text most horizontal
-      const angle = ((state.angleScale(d.x0) + state.angleScale(d.x1)) / 2)%Math.PI;
+      const angle = ((labelAngleScale(d.x0) + labelAngleScale(d.x1)) / 2)%Math.PI;
       const preferRadial = angle > Math.PI / 4 && angle < Math.PI * 3/4;
 
       let orientation = preferRadial
@@ -489,7 +491,7 @@ export default Kapsule({
         : (angularTextFits(d) ? 'angular' : radialTextFits(d) ? 'radial' : null);
 
       if (!orientation) {
-        const availableArcWidth = state.radiusScale(d.y0) * (state.angleScale(d.x1) - state.angleScale(d.x0));
+        const availableArcWidth = labelRadiusScale(d.y0) * (labelAngleScale(d.x1) - labelAngleScale(d.x0));
         if (availableArcWidth < fontSize + TEXT_STROKE_WIDTH) {
           // not enough space for radial text, choose angular
           orientation = 'angular';
@@ -511,7 +513,7 @@ export default Kapsule({
       if (pickedOrientation === 'angular') return ['angular', 'radial'];
       if (pickedOrientation === 'radial') return ['radial', 'angular'];
 
-      const angle = ((state.angleScale(d.x0) + state.angleScale(d.x1)) / 2)%Math.PI;
+      const angle = ((labelAngleScale(d.x0) + labelAngleScale(d.x1)) / 2)%Math.PI;
       const preferRadial = angle > Math.PI / 4 && angle < Math.PI * 3/4;
       return preferRadial ? ['radial', 'angular'] : ['angular', 'radial'];
     }
