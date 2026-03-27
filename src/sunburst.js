@@ -8,7 +8,7 @@ import { transition as d3Transition } from 'd3-transition';
 import Kapsule from 'kapsule';
 import accessorFn from 'accessor-fn';
 import Tooltip from 'float-tooltip';
-import  { measureTextWidth } from './text';
+import  { getFontSizeToFit, measureTextWidth } from './text';
 
 const TEXT_FONTSIZE = 12;
 const MIN_FONT_SIZE = 8;
@@ -339,29 +339,31 @@ export default Kapsule({
     allSlices.select('g.radial-label').select('text.text-contour');
     allSlices.select('g.radial-label').select('text.text-stroke');
 
+    const labelSpaceCache = new Map();
+    allSlices.each(d => {
+      labelSpaceCache.set(d, {
+        angularSpace: calcAvailableLabelAngularSpace(d),
+        radialSpace: calcAvailableLabelRadialSpace(d),
+        radialHeight: calcRadialLabelHeight(d)
+      });
+    });
+
     // Label processing
     const getLabelMeta = d => {
       if (!state.showLabels) return { label: '', fits: false, fontSize };
 
       let label = getNodeLabel(d);
+      if (!label || !hasPotentialLabelSpace(d)) {
+        return { isRadial: false, label: '', fits: false, fontSize: MIN_FONT_SIZE };
+      }
+
       const orientationOrder = getOrientationOrder(d);
 
       const tryFit = labelText => {
         for (const orientation of orientationOrder) {
           const isRadial = orientation === 'radial';
-          let labelFontSize = fontSize;
-          let fits = isRadial
-            ? radialTextFits(d, labelText, labelFontSize)
-            : angularTextFits(d, labelText, labelFontSize);
-
-          while (!fits && labelFontSize > MIN_FONT_SIZE) {
-            labelFontSize -= 1;
-            fits = isRadial
-              ? radialTextFits(d, labelText, labelFontSize)
-              : angularTextFits(d, labelText, labelFontSize);
-          }
-
-          if (fits) {
+          const labelFontSize = getFittingLabelFontSize(d, labelText, isRadial);
+          if (labelFontSize > 0) {
             return { isRadial, label: labelText, fits: true, fontSize: labelFontSize };
           }
         }
@@ -455,14 +457,33 @@ export default Kapsule({
       return `translate(${x}, ${y}) rotate(${rot})`;
     }
 
-    function getAvailableLabelAngularSpace(d) {
+    function calcAvailableLabelAngularSpace(d) {
       const deltaAngle = labelAngleScale(d.x1) - labelAngleScale(d.x0);
       const r = Math.max(0, (labelRadiusScale(d.y0) + labelRadiusScale(d.y1)) / 2);
       return r * deltaAngle;
     }
 
-    function getAvailableLabelRadialSpace(d) {
+    function getAvailableLabelAngularSpace(d) {
+      const entry = labelSpaceCache.get(d);
+      return entry ? entry.angularSpace : calcAvailableLabelAngularSpace(d);
+    }
+
+    function calcAvailableLabelRadialSpace(d) {
       return labelRadiusScale(d.y1) - labelRadiusScale(d.y0);
+    }
+
+    function getAvailableLabelRadialSpace(d) {
+      const entry = labelSpaceCache.get(d);
+      return entry ? entry.radialSpace : calcAvailableLabelRadialSpace(d);
+    }
+
+    function calcRadialLabelHeight(d) {
+      return labelRadiusScale(d.y0) * (labelAngleScale(d.x1) - labelAngleScale(d.x0));
+    }
+
+    function getRadialLabelHeight(d) {
+      const entry = labelSpaceCache.get(d);
+      return entry ? entry.radialHeight : calcRadialLabelHeight(d);
     }
 
     function getNodeLabel(d) {
@@ -470,15 +491,64 @@ export default Kapsule({
       return label == null ? '' : String(label);
     }
 
-    function angularTextFits(d, label = getNodeLabel(d), textFontSize = fontSize) {
+    function hasPotentialLabelSpace(d) {
+      const angularSpace = getAvailableLabelAngularSpace(d);
+      if (angularSpace >= MIN_FONT_SIZE) return true;
+
+      const radialHeight = getRadialLabelHeight(d);
+      return getAvailableLabelRadialSpace(d) >= MIN_FONT_SIZE
+        && radialHeight >= MIN_FONT_SIZE + TEXT_STROKE_WIDTH;
+    }
+
+    function textFits(d, label, textFontSize, isRadial) {
+      if (!label || textFontSize < MIN_FONT_SIZE) return false;
+
+      if (isRadial) {
+        const availableHeight = getRadialLabelHeight(d);
+        if (availableHeight < textFontSize + TEXT_STROKE_WIDTH) return false; // not enough angular space
+
+        return measureTextWidth(label, textFontSize, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelRadialSpace(d);
+      }
+
       return measureTextWidth(label, textFontSize, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelAngularSpace(d);
     }
 
-    function radialTextFits(d, label = getNodeLabel(d), textFontSize = fontSize) {
-      const availableHeight = labelRadiusScale(d.y0) * (labelAngleScale(d.x1) - labelAngleScale(d.x0));
-      if (availableHeight < textFontSize + TEXT_STROKE_WIDTH) return false; // not enough angular space
+    function getFittingLabelFontSize(d, label, isRadial) {
+      const availableSpace = isRadial ? getAvailableLabelRadialSpace(d) : getAvailableLabelAngularSpace(d);
+      if (availableSpace <= 0) return 0;
 
-      return measureTextWidth(label, textFontSize, { strokeWidth: TEXT_STROKE_WIDTH }) < getAvailableLabelRadialSpace(d);
+      const estimatedFontSize = getFontSizeToFit(availableSpace, label, {
+        minFontSize: MIN_FONT_SIZE,
+        maxFontSize: fontSize,
+        strokeWidth: TEXT_STROKE_WIDTH
+      });
+      if (estimatedFontSize <= 0) return 0;
+
+      let candidate = Math.max(MIN_FONT_SIZE, Math.floor(estimatedFontSize));
+
+      if (!textFits(d, label, candidate, isRadial)) {
+        candidate -= 1;
+        if (candidate >= MIN_FONT_SIZE && textFits(d, label, candidate, isRadial)) return candidate;
+
+        candidate -= 1;
+        if (candidate >= MIN_FONT_SIZE && textFits(d, label, candidate, isRadial)) return candidate;
+
+        return 0;
+      }
+
+      if (candidate < fontSize && textFits(d, label, candidate + 1, isRadial)) {
+        return candidate + 1;
+      }
+
+      return candidate;
+    }
+
+    function angularTextFits(d, label = getNodeLabel(d), textFontSize = fontSize) {
+      return textFits(d, label, textFontSize, false);
+    }
+
+    function radialTextFits(d, label = getNodeLabel(d), textFontSize = fontSize) {
+      return textFits(d, label, textFontSize, true);
     }
 
     function autoPickLabelOrientation(d) {
@@ -491,7 +561,7 @@ export default Kapsule({
         : (angularTextFits(d) ? 'angular' : radialTextFits(d) ? 'radial' : null);
 
       if (!orientation) {
-        const availableArcWidth = labelRadiusScale(d.y0) * (labelAngleScale(d.x1) - labelAngleScale(d.x0));
+        const availableArcWidth = getRadialLabelHeight(d);
         if (availableArcWidth < fontSize + TEXT_STROKE_WIDTH) {
           // not enough space for radial text, choose angular
           orientation = 'angular';

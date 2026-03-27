@@ -1,13 +1,43 @@
+let measureCtx = null;
+const textWidthCache = new Map();
+const MAX_TEXT_WIDTH_CACHE_SIZE = 5000;
+
+function getMeasureCtx() {
+  if (measureCtx) return measureCtx;
+
+  if (typeof OffscreenCanvas !== 'undefined') {
+    measureCtx = new OffscreenCanvas(0, 0).getContext('2d');
+  } else if (typeof document !== 'undefined') {
+    const canvasEl = document.createElement('canvas');
+    measureCtx = canvasEl.getContext('2d');
+  }
+
+  return measureCtx;
+}
+
 const measureTextWidth = (
   text,
   fontSize = 16,
   { strokeWidth = 1, fontFamily = 'sans-serif' } = {},
 ) => {
-  const ctx = new OffscreenCanvas(0, 0).getContext('2d');
+  const strText = text == null ? '' : String(text);
+  const cacheKey = `${fontFamily}|${fontSize}|${strokeWidth}|${strText}`;
+  const cachedValue = textWidthCache.get(cacheKey);
+  if (cachedValue != null) return cachedValue;
+
+  const ctx = getMeasureCtx();
   if (!ctx) return 0;
 
   ctx.font = `${fontSize}px ${fontFamily}`;
-  return ctx.measureText(text).width + strokeWidth;
+  const width = ctx.measureText(strText).width + strokeWidth;
+
+  textWidthCache.set(cacheKey, width);
+  if (textWidthCache.size > MAX_TEXT_WIDTH_CACHE_SIZE) {
+    const oldestKey = textWidthCache.keys().next().value;
+    oldestKey != null && textWidthCache.delete(oldestKey);
+  }
+
+  return width;
 };
 
 const ellipsisText = (
