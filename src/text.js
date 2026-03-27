@@ -1,9 +1,19 @@
+// Reuse a single canvas context for all text measurements
+let _measurementContext = null;
+const getMeasurementContext = () => {
+  if (!_measurementContext) {
+    const canvas = new OffscreenCanvas(0, 0);
+    _measurementContext = canvas.getContext('2d');
+  }
+  return _measurementContext;
+};
+
 const measureTextWidth = (
   text,
   fontSize = 16,
   { strokeWidth = 1, fontFamily = 'sans-serif' } = {},
 ) => {
-  const ctx = new OffscreenCanvas(0, 0).getContext('2d');
+  const ctx = getMeasurementContext();
   if (!ctx) return 0;
 
   ctx.font = `${fontSize}px ${fontFamily}`;

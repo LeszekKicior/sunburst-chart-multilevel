@@ -1,0 +1,62 @@
+<head>
+  <!--<script src="//cdn.jsdelivr.net/npm/sunburst-chart"></script>-->
+  <script src="../../dist/sunburst-chart.js"></script>
+
+  <style>body { margin: 0 }</style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+    // Generate a tree with 100 nodes for performance testing
+    function generateTestData() {
+      const root = {
+        name: 'Root',
+        children: []
+      };
+
+      // Create 5 main branches
+      for (let i = 0; i < 5; i++) {
+        const branch = {
+          name: `Branch ${i + 1}`,
+          children: []
+        };
+
+        // Each branch has 4 sub-branches
+        for (let j = 0; j < 4; j++) {
+          const subBranch = {
+            name: `Sub-branch ${i + 1}.${j + 1}`,
+            children: []
+          };
+
+          // Each sub-branch has 5 leaf nodes
+          for (let k = 0; k < 5; k++) {
+            subBranch.children.push({
+              name: `Leaf ${i + 1}.${j + 1}.${k + 1}`,
+              size: Math.floor(Math.random() * 100) + 1,
+              color: `hsl(${Math.random() * 360}, 70%, 60%)`
+            });
+          }
+
+          branch.children.push(subBranch);
+        }
+
+        root.children.push(branch);
+      }
+
+      return root;
+    }
+
+    const data = generateTestData();
+    console.log('Generated nodes:', JSON.stringify(data).match(/"name"/g).length);
+    console.time('Chart render');
+
+    new Sunburst(document.getElementById('chart'))
+      .data(data)
+      .size('size')
+      .color('color')
+      .onRender(() => {
+        console.timeEnd('Chart render');
+      });
+  </script>
+</body>
