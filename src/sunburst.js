@@ -400,28 +400,48 @@ export default Kapsule({
     // Show/hide labels
     allSlices.select('.angular-label')
       .transition(transition)
-        .styleTween('display', d => () => {
-          const { isRadial, fits } = labelMetaCache.get(d);
-          return computeAngularLabels && !isRadial && fits ? null : 'none';
+        .styleTween('display', d => {
+          const meta = labelMetaCache.get(d);
+          if (!meta) return () => 'none';
+          const { isRadial, fits } = meta;
+          return () => computeAngularLabels && !isRadial && fits ? null : 'none';
         })
-        .styleTween('font-size', d => () => `${labelMetaCache.get(d).fontSize}px`);
+        .styleTween('font-size', d => {
+          const meta = labelMetaCache.get(d);
+          if (!meta) return () => `${fontSize}px`;
+          return () => `${meta.fontSize}px`;
+        });
 
     allSlices.select('.radial-label')
       .transition(transition)
-        .styleTween('display', d => () => {
-          const { isRadial, fits } = labelMetaCache.get(d);
-          return computeRadialLabels && isRadial && fits ? null : 'none';
+        .styleTween('display', d => {
+          const meta = labelMetaCache.get(d);
+          if (!meta) return () => 'none';
+          const { isRadial, fits } = meta;
+          return () => computeRadialLabels && isRadial && fits ? null : 'none';
         })
-        .styleTween('font-size', d => () => `${labelMetaCache.get(d).fontSize}px`);
+        .styleTween('font-size', d => {
+          const meta = labelMetaCache.get(d);
+          if (!meta) return () => `${fontSize}px`;
+          return () => `${meta.fontSize}px`;
+        });
 
     // Set labels
     computeAngularLabels && allSlices.selectAll('text.angular-label').selectAll('textPath')
       .transition(transition)
-        .textTween(d => () => labelMetaCache.get(d).label);
+        .textTween(d => {
+          const meta = labelMetaCache.get(d);
+          if (!meta) return () => '';
+          return () => meta.label;
+        });
 
     computeRadialLabels && allSlices.selectAll('g.radial-label').selectAll('text')
       .transition(transition)
-        .textTween(d => () => labelMetaCache.get(d).label)
+        .textTween(d => {
+          const meta = labelMetaCache.get(d);
+          if (!meta) return () => '';
+          return () => meta.label;
+        })
         .attrTween('transform', d => () => radialTextTransform(d));
 
     //
