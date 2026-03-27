@@ -1,0 +1,184 @@
+<head>
+  <script src="//cdn.jsdelivr.net/npm/sunburst-chart"></script>
+  <!-- <script src="../../dist/sunburst-chart.js"></script> -->
+
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f6f7fb;
+    }
+
+    #chart {
+      width: 100vw;
+      height: calc(100vh - 44px);
+    }
+
+    #status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 44px;
+      padding: 0 14px;
+      font-size: 13px;
+      border-bottom: 1px solid #d8dce8;
+      background: #ffffff;
+      color: #31394d;
+      box-sizing: border-box;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #17a34a;
+    }
+
+    .dot.loading {
+      background: #e16f08;
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        opacity: 0.4;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="status">
+    <div class="dot" id="status-dot"></div>
+    <span id="status-text">Click a segment to try loading deeper levels from a fake API.</span>
+  </div>
+  <div id="chart"></div>
+
+  <script>
+    const maxDepth = 4;
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+
+    const palette = ['#3556d3', '#0fa3b1', '#f9844a', '#8f5db7', '#4a7c59', '#d64933'];
+
+    const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    function setStatus(message, isLoading) {
+      statusText.textContent = message;
+      statusDot.classList.toggle('loading', !!isLoading);
+    }
+
+    function createLeaf(name, depth) {
+      return {
+        name,
+        value: randomInt(2, 8),
+        depth,
+        canLoadMore: false,
+        loaded: true
+      };
+    }
+
+    function createLoadableNode(name, depth) {
+      return {
+        name,
+        value: randomInt(3, 9),
+        depth,
+        canLoadMore: true,
+        loaded: false
+      };
+    }
+
+    function fakeFetchChildren(node) {
+      return new Promise(resolve => {
+        const latency = randomInt(450, 1200);
+        setTimeout(() => {
+          if (node.depth >= maxDepth) {
+            resolve([]);
+            return;
+          }
+
+          const childrenCount = randomInt(2, 4);
+          const children = [];
+
+          for (let i = 0; i < childrenCount; i++) {
+            const nextDepth = node.depth + 1;
+            const childName = `${node.name}.${i + 1}`;
+            const shouldKeepExpanding = nextDepth < maxDepth && Math.random() > 0.35;
+
+            children.push(
+              shouldKeepExpanding
+                ? createLoadableNode(childName, nextDepth)
+                : createLeaf(childName, nextDepth)
+            );
+          }
+
+          resolve(children);
+        }, latency);
+      });
+    }
+
+    const data = {
+      name: 'API root',
+      depth: 0,
+      loaded: true,
+      canLoadMore: true,
+      children: [
+        createLoadableNode('Users', 1),
+        createLoadableNode('Products', 1),
+        createLoadableNode('Orders', 1),
+        createLoadableNode('Analytics', 1)
+      ]
+    };
+
+    const chart = new Sunburst(document.getElementById('chart'))
+      .data(data)
+      .size('value')
+      .color(node => palette[node.depth % palette.length])
+      .radiusScaleExponent(1)
+      .tooltipContent((node, state) => {
+        const pieces = [];
+        pieces.push(`Depth: ${node.depth}`);
+        if (state.value) {
+          pieces.push(`Value: ${state.value}`);
+        }
+        pieces.push(node.canLoadMore && !node.loaded ? 'Click to fetch children' : 'Already expanded');
+        return pieces.join('<br>');
+      })
+      .onClick(async node => {
+        if (!node) {
+          chart.focusOnNode();
+          setStatus('Reset to root.', false);
+          return;
+        }
+
+        if (!node.canLoadMore || node.loaded) {
+          chart.focusOnNode(node);
+          setStatus(`${node.name}: no more levels to load.`, false);
+          return;
+        }
+
+        node.loading = true;
+        setStatus(`Loading children for ${node.name}...`, true);
+
+        const children = await fakeFetchChildren(node);
+        node.loading = false;
+        node.loaded = true;
+
+        if (children.length) {
+          node.children = children;
+          delete node.value;
+          setStatus(`Loaded ${children.length} children for ${node.name}. Click one of them to go deeper.`, false);
+        } else {
+          node.canLoadMore = false;
+          setStatus(`${node.name} has no deeper levels available.`, false);
+        }
+
+        chart.data(data);
+        chart.focusOnNode(node);
+      });
+  </script>
+</body>
