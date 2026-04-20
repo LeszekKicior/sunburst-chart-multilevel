@@ -203,16 +203,19 @@ export default Kapsule({
       || { x0: 0, x1: 1, y0: 0, y1: 1, __level0: state.excludeRoot ? state.rootLevelSpan : 0, __subtreeLevel1: state.maxLevel };
 
     const focusLevel0 = focusD.__level0 != null ? focusD.__level0 : (state.excludeRoot ? state.rootLevelSpan : 0);
+    const visibleMaxLevel = focusLevel0 + (state.maxLevels || Infinity);
+    const focusSubtreeLevel1 = focusD.__subtreeLevel1 != null ? focusD.__subtreeLevel1 : state.maxLevel;
+    const maxLevel = Math.min(focusSubtreeLevel1, visibleMaxLevel);
 
     const slice = state.canvas.selectAll('.slice')
       .data(
         state.layoutData
-          .filter(d => // Show only slices with a large enough angle and within the max levels
+          .filter(d => // Show only slices with a large enough angle and within the visible max levels
             d.x1 > focusD.x0
             && d.x0 < focusD.x1
-            && (d.x1-d.x0)/(focusD.x1-focusD.x0) > state.minSliceAngle/360
-            && (!state.maxLevels || d.__level0 - focusLevel0 < state.maxLevels)
-            && (d.y0 >=0 || focusD.parent) // hide negative layers on top level
+            && (d.x1 - d.x0) / (focusD.x1 - focusD.x0) > state.minSliceAngle / 360
+            && d.__level1 <= visibleMaxLevel
+            && (d.y0 >= 0 || focusD.parent) // hide negative layers on top level
           ),
         d => d.id
       );
@@ -222,12 +225,6 @@ export default Kapsule({
     const strokeColorOf = accessorFn(state.strokeColor);
     const nodeClassNameOf = accessorFn(state.nodeClassName);
     const transition = d3Transition().duration(state.transitionDuration);
-
-    const focusSubtreeLevel1 = focusD.__subtreeLevel1 != null ? focusD.__subtreeLevel1 : state.maxLevel;
-    const maxLevel = Math.min(
-      focusSubtreeLevel1,
-      focusLevel0 + (state.maxLevels || Infinity)
-    );
     const maxY = Math.min(1, state.levelToY(maxLevel));
     const labelAngleScale = state.angleScale.copy().domain([focusD.x0, focusD.x1]);
     const labelRadiusScale = state.radiusScale.copy().domain([focusD.y0, maxY]);
@@ -244,7 +241,10 @@ export default Kapsule({
       });
 
     // Exiting
-    const oldSlice = slice.exit().transition(transition).remove();
+    const oldSlice = slice.exit()
+      .transition(transition)
+      .style('opacity', 0)
+      .remove();
     oldSlice.select('path.main-arc').attrTween('d', d => () => state.arc(d));
     oldSlice.select('path.hidden-arc').attrTween('d', d => () => middleArcLine(d));
 
@@ -314,11 +314,12 @@ export default Kapsule({
     const allSlices = slice.merge(newSlice);
 
     allSlices
-      .style('opacity', 1)
       .attr('class', d => [
         'slice',
         ...(`${nodeClassNameOf(d.data) || ''}`.split(' ').map(str => str.trim()))
-      ].filter(s => s).join(' '));
+      ].filter(s => s).join(' '))
+      .transition(transition)
+      .style('opacity', 1);
 
     allSlices.select('path.main-arc').transition(transition)
       .attrTween('d', d => () => state.arc(d))
