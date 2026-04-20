@@ -56,7 +56,7 @@ const myChart = new Sunburst(<myDOMElement>);
 | <b>strokeColor</b>([<i>string</i> or <i>fn</i>]) | Getter/setter for a node object stroke color accessor, used to color the contour of the arcs. | <i>white</i> |
 | <b>nodeClassName</b>([<i>string</i> or <i>fn</i>]) | Getter/setter for a node object classname accessor. Determines the CSS class(es) to apply to each slice node. | - |
 | <b>minSliceAngle</b>([<i>number</i>]) | Getter/setter for the minimum angle of an arc (in degrees) required for it to be rendered in the DOM. | `0.2` |
-| <b>maxLevels</b>([<i>number</i>]) | Getter/setter for the maximum number of layers to show at any given time. | - |
+| <b>maxLevels</b>([<i>number</i>]) | Getter/setter for the maximum visible depth to show at any given time, counted by rendered hierarchy depth rather than raw `level` values. | - |
 | <b>excludeRoot</b>([<i>boolean</i>]) | Getter/setter for whether to exclude the root node from the top level representation, to maximize the available radial space. | `false` |
 | <b>centerRadius</b>([<i>number</i>]) | Getter/setter for the relative radius of the center circle. The value should be proportional to the whole chart radius. Only values between `<0, 1>` are permitted. | `0.1` |
 | <b>radiusScaleExponent</b>([<i>number</i>]) | Getter/setter for the exponent of the power scale used to calculate the thickness of the multi-layered rings. The default is `0.5` (square-root) which ensures the area of every segment remains proportional to their value, by decreasing the radius outwards in a quadratic fashion. For a linear scale, use `1`. Negatives values are not permitted. | `0.5` |

@@ -78,7 +78,9 @@ export default Kapsule({
 
        hierData.eachBefore(d => {
           d.__level0 = d.parent ? d.parent.__level1 : 0;
-          
+          d.__depth0 = d.parent ? d.parent.__depth1 : 0;
+          d.__depth1 = d.__depth0 + 1;
+
           // Check if node has explicit level defined
           const explicitLevel = levelOf(d.data, d.parent);
           if (explicitLevel != null && Number.isFinite(+explicitLevel)) {
@@ -98,6 +100,10 @@ export default Kapsule({
             d.__level1,
             ...((d.children || []).map(child => child.__subtreeLevel1))
           );
+          d.__subtreeDepth1 = Math.max(
+            d.__depth1,
+            ...((d.children || []).map(child => child.__subtreeDepth1))
+          );
         });
 
         const maxLevel = Math.max(...hierData.descendants().map(d => d.__level1));
@@ -110,6 +116,7 @@ export default Kapsule({
 
         state.rootLevelSpan = hierData.__level1 - hierData.__level0;
         state.maxLevel = maxLevel;
+        state.maxDepth = Math.max(...hierData.descendants().map(d => d.__depth1));
 
         if (state.excludeRoot) {
           // re-scale y values if excluding root
@@ -200,32 +207,46 @@ export default Kapsule({
 
     const focusD =
       (state.focusOnNode && state.focusOnNode.__dataNode.y0 >= 0 && state.focusOnNode.__dataNode)
-      || { x0: 0, x1: 1, y0: 0, y1: 1, __level0: state.excludeRoot ? state.rootLevelSpan : 0, __subtreeLevel1: state.maxLevel };
+      || {
+        x0: 0,
+        x1: 1,
+        y0: 0,
+        y1: 1,
+        __level0: state.excludeRoot ? state.rootLevelSpan : 0,
+        __level1: state.excludeRoot ? state.rootLevelSpan : 1,
+        __depth0: state.excludeRoot ? 1 : 0,
+        __subtreeDepth1: state.maxDepth
+      };
 
-    const focusLevel0 = focusD.__level0 != null ? focusD.__level0 : (state.excludeRoot ? state.rootLevelSpan : 0);
-    const visibleMaxLevel = focusLevel0 + (state.maxLevels || Infinity);
-    const focusSubtreeLevel1 = focusD.__subtreeLevel1 != null ? focusD.__subtreeLevel1 : state.maxLevel;
-    const maxLevel = Math.min(focusSubtreeLevel1, visibleMaxLevel);
+    const maxLevels = Number.isFinite(+state.maxLevels) && +state.maxLevels > 0
+      ? +state.maxLevels
+      : Infinity;
+    const focusDepth0 = focusD.__depth0 != null ? focusD.__depth0 : (state.excludeRoot ? 1 : 0);
+    const visibleMaxDepth = focusDepth0 + maxLevels;
+
+    const focusSlices = state.layoutData
+      .filter(d => // Keep all in-focus slices so zoom transitions remain smooth
+        d.x1 > focusD.x0
+        && d.x0 < focusD.x1
+        && (d.x1 - d.x0) / (focusD.x1 - focusD.x0) > state.minSliceAngle / 360
+        && (d.y0 >= 0 || focusD.parent) // hide negative layers on top level
+      );
+
+    const isVisibleDepth = d => d.__depth1 <= visibleMaxDepth;
+    const visibleSlices = focusSlices.filter(isVisibleDepth);
 
     const slice = state.canvas.selectAll('.slice')
-      .data(
-        state.layoutData
-          .filter(d => // Show only slices with a large enough angle and within the visible max levels
-            d.x1 > focusD.x0
-            && d.x0 < focusD.x1
-            && (d.x1 - d.x0) / (focusD.x1 - focusD.x0) > state.minSliceAngle / 360
-            && d.__level1 <= visibleMaxLevel
-            && (d.y0 >= 0 || focusD.parent) // hide negative layers on top level
-          ),
-        d => d.id
-      );
+      .data(focusSlices, d => d.id);
 
     const nameOf = accessorFn(state.label);
     const colorOf = accessorFn(state.color);
     const strokeColorOf = accessorFn(state.strokeColor);
     const nodeClassNameOf = accessorFn(state.nodeClassName);
     const transition = d3Transition().duration(state.transitionDuration);
-    const maxY = Math.min(1, state.levelToY(maxLevel));
+    const maxVisibleLevel = visibleSlices.length
+      ? Math.min(state.maxLevel, Math.max(...visibleSlices.map(d => d.__level1)))
+      : (focusD.__level1 != null ? focusD.__level1 : state.maxLevel);
+    const maxY = Math.min(1, state.levelToY(maxVisibleLevel));
     const labelAngleScale = state.angleScale.copy().domain([focusD.x0, focusD.x1]);
     const labelRadiusScale = state.radiusScale.copy().domain([focusD.y0, maxY]);
 
@@ -318,8 +339,9 @@ export default Kapsule({
         'slice',
         ...(`${nodeClassNameOf(d.data) || ''}`.split(' ').map(str => str.trim()))
       ].filter(s => s).join(' '))
+      .style('pointer-events', d => isVisibleDepth(d) ? 'auto' : 'none')
       .transition(transition)
-      .style('opacity', 1);
+      .style('opacity', d => isVisibleDepth(d) ? 1 : 0);
 
     allSlices.select('path.main-arc').transition(transition)
       .attrTween('d', d => () => state.arc(d))
