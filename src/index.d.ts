@@ -87,6 +87,8 @@ declare class SunburstChart {
   tooltipTitle(fn: TooltipFn): SunburstChart;
   tooltipContent(): TooltipFn;
   tooltipContent(fn: TooltipFn): SunburstChart;
+  showValueInTooltip(): boolean;
+  showValueInTooltip(show: boolean): SunburstChart;
 
   onClick(cb: ((node: Node, event: MouseEvent) => void) | null): SunburstChart;
   onRightClick(cb: ((node: Node, event: MouseEvent) => void) | null): SunburstChart;
