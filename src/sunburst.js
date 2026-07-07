@@ -41,6 +41,7 @@ export default Kapsule({
     tooltipContent: { default: d => '', triggerUpdate: false },
     tooltipTitle: { default: null, triggerUpdate: false },
     showTooltip: { default: d => true, triggerUpdate: false},
+    showValueInTooltip: { default: false, triggerUpdate: false },
     focusOnNode: {
       onChange: function(d, state) {
         if (d && state.initialised) {
@@ -287,14 +288,14 @@ export default Kapsule({
         ev.stopPropagation();
         state.onHover && state.onHover(d.data, ev);
 
-        state.tooltip.content(!!state.showTooltip(d.data, d) && `<div class="tooltip-title">${
-          state.tooltipTitle
-            ? state.tooltipTitle(d.data, d)
-            : getNodeStack(d)
-              .slice(state.excludeRoot ? 1 : 0)
-              .map(getNodeLabel)
-              .join(' &rarr; ')
-        }</div>${state.tooltipContent(d.data, d)}`);
+        const tooltipTitle = state.tooltipTitle
+          ? state.tooltipTitle(d.data, d)
+          : getNodeStack(d)
+            .slice(state.excludeRoot ? 1 : 0)
+            .map(getNodeLabel)
+            .join(' &rarr; ') + (state.showValueInTooltip ? `: ${d.value}` : '');
+
+        state.tooltip.content(!!state.showTooltip(d.data, d) && `<div class="tooltip-title">${tooltipTitle}</div>${state.tooltipContent(d.data, d)}`);
       })
       .on('mouseout', () => state.tooltip.content(false));
 

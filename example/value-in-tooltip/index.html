@@ -1,0 +1,60 @@
+<head>
+  <!--<script src="//cdn.jsdelivr.net/npm/sunburst-chart"></script>-->
+  <script src="../../dist/sunburst-chart.js"></script>
+
+  <style>body { margin: 0 }</style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+    const data = {
+      name: 'Root',
+      color: 'magenta',
+      children: [{
+        name: 'Category A',
+        color: 'yellow',
+        size: 150
+      },{
+        name: 'Category B',
+        color: 'red',
+        children: [{
+          name: 'Subcategory B1',
+          color: 'orange',
+          size: 80
+        }, {
+          name: 'Subcategory B2',
+          color: 'blue',
+          children: [{
+            name: 'Item B2a',
+            color: 'green',
+            size: 45
+          }, {
+            name: 'Item B2b',
+            color: 'pink',
+            size: 65
+          }]
+        }]
+      },{
+        name: 'Category C',
+        color: 'purple',
+        children: [{
+          name: 'Subcategory C1',
+          color: 'cyan',
+          size: 120
+        }, {
+          name: 'Subcategory C2',
+          color: 'teal',
+          size: 95
+        }]
+      }]
+    };
+
+    new Sunburst(document.getElementById('chart'))
+      .data(data)
+      .size('size')
+      .color('color')
+      .showValueInTooltip(true)
+      .radiusScaleExponent(1);
+  </script>
+</body>
