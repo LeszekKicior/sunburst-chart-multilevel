@@ -1,0 +1,46 @@
+<head>
+  <script src="//cdn.jsdelivr.net/npm/sunburst-chart"></script>
+  <!--<script src="../../dist/sunburst-chart.js"></script>-->
+
+  <style>body { margin: 0 }</style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+    // Example demonstrating the `countDirectly` prop which allows using
+    // pre-calculated cumulative values from the data, instead of summing them.
+    
+    const data = {
+      name: 'Root',
+      value: 100, // Pre-calculated sum
+      children: [{
+        name: 'Branch A',
+        value: 40, // Pre-calculated sum of A1 and A2
+        children: [{
+          name: 'Leaf A1',
+          value: 15
+        }, {
+          name: 'Leaf A2',
+          value: 25
+        }]
+      }, {
+        name: 'Branch B',
+        value: 60, // Pre-calculated sum of B1 and B2
+        children: [{
+          name: 'Leaf B1',
+          value: 30
+        }, {
+          name: 'Leaf B2',
+          value: 30
+        }]
+      }]
+    };
+
+    new Sunburst(document.getElementById('chart'))
+      .data(data)
+      .size('value')
+      .countDirectly(true) // Use the 'value' property directly
+      .showValueInTooltip(true);
+  </script>
+</body>
