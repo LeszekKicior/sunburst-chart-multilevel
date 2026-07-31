@@ -1,0 +1,94 @@
+<head>
+  <!-- <script src="//cdn.jsdelivr.net/npm/sunburst-chart"></script> -->
+  <script src="../../dist/sunburst-chart.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    .info {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      max-width: 380px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+      line-height: 1.4;
+    }
+
+    .info b {
+      display: inline-block;
+      min-width: 90px;
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <div><b>level values:</b> 10, 20, 50, 100</div>
+    <div><b>maxLevels:</b> 3</div>
+    <div>The chart opens focused on one branch so you can immediately see that sparse raw levels still render as exactly three visible hierarchy layers.</div>
+  </div>
+  <div id="chart"></div>
+
+  <script>
+    const data = {
+      name: 'Root',
+      level: 10,
+      color: '#3366cc',
+      children: [
+        {
+          name: 'Level 20 A',
+          level: 20,
+          color: '#dc3912',
+          children: [
+            {
+              name: 'Level 50 A1',
+              level: 50,
+              color: '#ff9900',
+              children: [
+                { name: 'Level 100 A1a', level: 100, color: '#109618', value: 4 },
+                { name: 'Level 100 A1b', level: 100, color: '#990099', value: 3 }
+              ]
+            },
+            {
+              name: 'Level 50 A2',
+              level: 50,
+              color: '#0099c6',
+              value: 5
+            }
+          ]
+        },
+        {
+          name: 'Level 20 B',
+          level: 20,
+          color: '#dd4477',
+          children: [
+            {
+              name: 'Level 50 B1',
+              level: 50,
+              color: '#66aa00',
+              children: [
+                { name: 'Level 100 B1a', level: 100, color: '#b82e2e', value: 2 },
+                { name: 'Level 100 B1b', level: 100, color: '#316395', value: 2 }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+
+    new Sunburst(document.getElementById('chart'))
+      .data(data)
+      .level('level')
+      .size('value')
+      .color('color')
+      .maxLevels(3)
+      .focusOnNode(data.children[0])
+      .transitionDuration(750)
+      .tooltipContent((d, node) => `Raw level: <i>${d.level}</i><br>Rendered depth: <i>${node.depth}</i><br>Value: <i>${node.value}</i>`);
+  </script>
+</body>
