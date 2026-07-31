@@ -33,7 +33,7 @@ export default Kapsule({
     nodeClassName: {}, // Additional css classes to add on each slice node
     minSliceAngle: { default: .2 },
     maxLevels: {},
-    maxRank: {},
+    maxNodeLevel: {},
     excludeRoot: { default: false, onChange(_, state) { state.needsReparse = true }},
     centerRadius: { default: 0.1 },
     radiusScaleExponent: { default: 0.5 }, // radius decreases quadratically outwards to preserve area
@@ -233,8 +233,8 @@ export default Kapsule({
     const maxLevels = Number.isFinite(+state.maxLevels) && +state.maxLevels > 0
       ? +state.maxLevels
       : Infinity;
-    const maxRank = Number.isFinite(+state.maxRank) && +state.maxRank > 0
-      ? +state.maxRank
+    const maxNodeLevel = Number.isFinite(+state.maxNodeLevel) && +state.maxNodeLevel > 0
+      ? +state.maxNodeLevel
       : Infinity;
     const focusDepth0 = focusD.__depth0 != null ? focusD.__depth0 : (state.excludeRoot ? 1 : 0);
     const visibleMaxDepth = focusDepth0 + maxLevels;
@@ -245,10 +245,10 @@ export default Kapsule({
         && d.x0 < focusD.x1
         && (d.x1 - d.x0) / (focusD.x1 - focusD.x0) > state.minSliceAngle / 360
         && (d.y0 >= 0 || focusD.parent) // hide negative layers on top level
-        && d.__level1 <= maxRank
+        && d.__level1 <= maxNodeLevel
       );
 
-    const isVisibleDepth = d => d.__depth1 <= visibleMaxDepth && d.__level1 <= maxRank;
+    const isVisibleDepth = d => d.__depth1 <= visibleMaxDepth && d.__level1 <= maxNodeLevel;
     const visibleSlices = focusSlices.filter(isVisibleDepth);
 
     const slice = state.canvas.selectAll('.slice')

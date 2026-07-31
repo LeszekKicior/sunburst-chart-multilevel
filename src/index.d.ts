@@ -63,8 +63,8 @@ declare class SunburstChart {
   minSliceAngle(degrees: number): SunburstChart;
   maxLevels(): number;
   maxLevels(degrees: number): SunburstChart;
-  maxRank(): number;
-  maxRank(rank: number): SunburstChart;
+  maxNodeLevel(): number;
+  maxNodeLevel(rank: number): SunburstChart;
   excludeRoot(): boolean;
   excludeRoot(exclude: boolean): SunburstChart;
   centerRadius(): number;
