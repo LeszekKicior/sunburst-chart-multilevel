@@ -8,7 +8,8 @@ import { transition as d3Transition } from 'd3-transition';
 import Kapsule from 'kapsule';
 import accessorFn from 'accessor-fn';
 import Tooltip from 'float-tooltip';
-import  { measureTextWidth } from './text';
+import { measureTextWidth } from './text';
+import { exportSVG, exportPNG } from './export';
 
 const TEXT_FONTSIZE = 12;
 const MIN_FONT_SIZE = 8;
@@ -152,7 +153,9 @@ export default Kapsule({
 
         state.layoutData = hierData.descendants();
       }
-    }
+    },
+    exportSVG,
+    exportPNG
   },
 
   init: function(domNode, state) {

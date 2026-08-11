@@ -103,6 +103,9 @@ declare class SunburstChart {
 
   transitionDuration(): number;
   transitionDuration(duration: number): SunburstChart;
+
+  exportSVG(fileName?: string): SunburstChart;
+  exportPNG(fileName?: string): SunburstChart;
 }
 
 export default SunburstChart;

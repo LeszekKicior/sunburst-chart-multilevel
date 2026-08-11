@@ -75,6 +75,8 @@ const myChart = new Sunburst(<myDOMElement>);
 | <b>onClick</b>([<i>fn</i>]) | Callback function for click events. The data node object (or `null` if clicking on background) and the event object are included as arguments `onClick(node, event)`. A falsy value (default) automatically focuses on clicked nodes, equivalent to `myChart.onClick(myChart.focusOnNode)`. | |
 | <b>onRightClick</b>([<i>fn</i>]) | Callback function for right-click events. The data node object (or `null` if right-clicking on background) and the event object are included as arguments `onRightClick(node, event)`. A falsy value (default) will fallback to the default browser behaviour, which is to open the context menu. | |
 | <b>transitionDuration</b>([<i>number</i>]) | Getter/setter for the animation duration of transitions between states (opening, zoom in/out) in milliseconds. Enter `0` to disable animations. | `750` |
+| <b>exportSVG</b>([<i>string</i>]) | Exports the current chart as an SVG file. | `chart.svg` |
+| <b>exportPNG</b>([<i>string</i>]) | Exports the current chart as a PNG file. | `chart.png` |
 
 ## Data syntax
 
