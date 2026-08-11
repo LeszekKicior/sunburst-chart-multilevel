@@ -12,7 +12,7 @@
 .sunburst-viz .text-contour {
   fill: none;
   stroke: white;
-  stroke-linejoin: 'round';
+  stroke-linejoin: round;
 }
 
 .sunburst-viz .main-arc {
