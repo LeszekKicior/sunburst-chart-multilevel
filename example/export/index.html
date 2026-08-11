@@ -1,0 +1,68 @@
+<head>
+  <script src="../../dist/sunburst-chart.js"></script>
+
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    .controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    button {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <button onclick="myChart.exportSVG()">Export SVG</button>
+    <button onclick="myChart.exportPNG()">Export PNG</button>
+  </div>
+  <div id="chart"></div>
+
+  <script>
+    const data = {
+      name: 'root',
+      children: [
+        {
+          name: 'leaf A',
+          color: 'orange',
+          value: 3
+        },
+        {
+          name: 'node B',
+          color: 'skyblue',
+          children: [
+            {
+              name: 'leaf B1',
+              color: 'dodgerblue',
+              value: 1
+            },
+            {
+              name: 'leaf B2',
+              color: 'blue',
+              value: 1
+            }
+          ]
+        },
+        {
+          name: 'leaf C',
+          color: 'green',
+          levelSpan: 2,
+          value: 2
+        }
+      ]
+    };
+
+    window.myChart = new Sunburst(document.getElementById('chart'))
+      .data(data)
+      .color('color')
+      .levelSpan(d => d.levelSpan || 1);
+  </script>
+</body>

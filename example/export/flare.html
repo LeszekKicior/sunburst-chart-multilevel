@@ -1,0 +1,44 @@
+<head>
+  <script src="../../dist/sunburst-chart.js"></script>
+
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    .controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    button {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <button onclick="myChart.exportSVG('flare-chart.svg')">Export SVG</button>
+    <button onclick="myChart.exportPNG('flare-chart.png')">Export PNG</button>
+  </div>
+  <div id="chart"></div>
+
+  <script type="module">
+    import { scaleOrdinal } from 'https://esm.sh/d3-scale';
+    import { schemePaired } from 'https://esm.sh/d3-scale-chromatic';
+
+    const color = scaleOrdinal(schemePaired);
+
+    fetch('../flare/flare.json').then(res => res.json()).then(data => {
+      window.myChart = new Sunburst(document.getElementById('chart'))
+        .data(data)
+        .label('name')
+        .size('size')
+        .color((d, parent) => color(parent ? parent.data.name : null))
+        .tooltipContent((d, node) => `Size: <i>${node.value}</i>`);
+    });
+  </script>
+</body>
