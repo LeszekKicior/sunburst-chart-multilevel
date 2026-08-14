@@ -58,6 +58,7 @@ const myChart = new Sunburst(<myDOMElement>);
 | <b>strokeColor</b>([<i>string</i> or <i>fn</i>]) | Getter/setter for a node object stroke color accessor, used to color the contour of the arcs. | <i>white</i> |
 | <b>nodeClassName</b>([<i>string</i> or <i>fn</i>]) | Getter/setter for a node object classname accessor. Determines the CSS class(es) to apply to each slice node. | - |
 | <b>minSliceAngle</b>([<i>number</i>]) | Getter/setter for the minimum angle of an arc (in degrees) required for it to be rendered in the DOM. | `0.2` |
+| <b>fillGaps</b>([<i>boolean</i>]) | Getter/setter for whether to expand visible segments or aggregate tiny ones to fill gaps created by `minSliceAngle` filtering. See [here for an example](https://vasturiano.github.io/sunburst-chart/example/fill-gaps) of the difference. | `false` |
 | <b>maxLevels</b>([<i>number</i>]) | Getter/setter for the maximum visible depth to show at any given time, counted by rendered hierarchy depth rather than raw `level` values. | - |
 | <b>maxNodeLevel</b>([<i>number</i>]) | Getter/setter for the maximum `level` to show. Nodes where `level` is equal or greater than `maxNodeLevel` are hidden. | - |
 | <b>excludeRoot</b>([<i>boolean</i>]) | Getter/setter for whether to exclude the root node from the top level representation, to maximize the available radial space. | `false` |

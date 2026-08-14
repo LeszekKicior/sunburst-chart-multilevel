@@ -33,6 +33,7 @@ export default Kapsule({
     strokeColor: { default: d => 'white' },
     nodeClassName: {}, // Additional css classes to add on each slice node
     minSliceAngle: { default: .2 },
+    fillGaps: { default: false },
     maxLevels: {},
     maxNodeLevel: {},
     excludeRoot: { default: false, onChange(_, state) { state.needsReparse = true }},
@@ -255,14 +256,59 @@ export default Kapsule({
     const focusDepth0 = focusD.__depth0 != null ? focusD.__depth0 : (state.excludeRoot ? 1 : 0);
     const visibleMaxDepth = focusDepth0 + maxLevels;
 
-    const focusSlices = state.layoutData
+    const allFocusSlices = state.layoutData
       .filter(d => // Keep all in-focus slices so zoom transitions remain smooth
         d.x1 > focusD.x0
         && d.x0 < focusD.x1
-        && (d.x1 - d.x0) / (focusD.x1 - focusD.x0) > state.minSliceAngle / 360
         && (d.y0 >= 0 || focusD.parent) // hide negative layers on top level
         && d.__level1 <= maxNodeLevel
       );
+
+    const minAngle = state.minSliceAngle / 360 * (focusD.x1 - focusD.x0);
+
+    const slicesByGroup = new Map();
+    allFocusSlices.forEach(d => {
+      const parentId = d.parent ? d.parent.id : 'root';
+      const key = `${parentId}-${d.y0}-${d.y1}`;
+      if (!slicesByGroup.has(key)) slicesByGroup.set(key, []);
+      slicesByGroup.get(key).push(d);
+    });
+
+    const focusSlices = [];
+    if (state.fillGaps) {
+      slicesByGroup.forEach(groupNodes => {
+        const visibleNodes = groupNodes.filter(d => (d.x1 - d.x0) >= minAngle);
+
+        if (visibleNodes.length > 0) {
+          // Expand visible nodes to cover gaps
+          const groupX0 = groupNodes[0].x0;
+          const groupX1 = groupNodes[groupNodes.length - 1].x1;
+
+          visibleNodes.forEach((d, i) => {
+            const rd = Object.assign(Object.create(d), {
+              x0: i === 0 ? groupX0 : visibleNodes[i - 1].__render_x1,
+              x1: i === visibleNodes.length - 1 ? groupX1 : (d.x1 + visibleNodes[i + 1].x0) / 2
+            });
+            d.__render_x1 = rd.x1;
+            focusSlices.push(rd);
+          });
+          visibleNodes.forEach(d => delete d.__render_x1);
+        } else if (groupNodes.length > 0) {
+          // All tiny, aggregate into one
+          const rd = Object.assign(Object.create(groupNodes[0]), {
+            x0: groupNodes[0].x0,
+            x1: groupNodes[groupNodes.length - 1].x1
+          });
+          focusSlices.push(rd);
+        }
+      });
+    } else {
+      allFocusSlices.forEach(d => {
+        if ((d.x1 - d.x0) >= minAngle) {
+          focusSlices.push(d);
+        }
+      });
+    }
 
     const isVisibleDepth = d => d.__depth1 <= visibleMaxDepth && d.__level1 <= maxNodeLevel;
     const visibleSlices = focusSlices.filter(isVisibleDepth);

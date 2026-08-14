@@ -1,0 +1,87 @@
+<head>
+  <script src="//cdn.jsdelivr.net/npm/sunburst-chart"></script>
+<!--  <script src="../../dist/sunburst-chart.js"></script>-->
+
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    .container { display: flex; flex-direction: row; justify-content: space-around; width: 100vw; height: 100vh; }
+    .chart-box { flex: 1; display: flex; flex-direction: column; align-items: center; border-right: 1px solid #ccc; }
+    .chart-box:last-child { border-right: none; }
+    .chart { width: 100%; flex: 1; }
+    h2 { margin-top: 20px; margin-bottom: 5px; }
+    .description { padding: 0 10px 10px 10px; font-size: 14px; text-align: center; color: #666; }
+    .data-info { padding: 10px; font-size: 12px; background: #f9f9f9; border-bottom: 1px solid #eee; width: 100%; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="chart-box">
+      <h2>minSliceAngle: 0</h2>
+      <div class="description">All segments are rendered, no matter how small.</div>
+      <div id="chart-min-angle-0" class="chart"></div>
+    </div>
+    <div class="chart-box">
+      <h2>fillGaps: false</h2>
+      <div class="description">Gaps are visible where tiny segments are filtered out (default behavior).</div>
+      <div id="chart-gaps-false" class="chart"></div>
+    </div>
+    <div class="chart-box">
+      <h2>fillGaps: true</h2>
+      <div class="description">Visible segments are expanded and tiny siblings aggregated to fill gaps.</div>
+      <div id="chart-gaps-true" class="chart"></div>
+    </div>
+  </div>
+
+  <script>
+    const tinyChildren = [];
+    for (let i = 0; i < 20; i++) {
+      tinyChildren.push({ name: `Tiny ${i}`, value: 0.05 });
+    }
+
+    const data = {
+      name: 'Root',
+      children: [
+        {
+          name: 'Large A',
+          value: 10,
+          children: [
+            { name: 'A1', value: 5 },
+            ...tinyChildren,
+            { name: 'A2', value: 5 }
+          ]
+        },
+        {
+          name: 'Large B',
+          value: 10,
+          children: [
+            ...tinyChildren
+          ]
+        },
+        { name: 'Large C', value: 10 }
+      ]
+    };
+
+    const configs = [
+      { id: 'chart-min-angle-0', fillGaps: false, minSliceAngle: 0 },
+      { id: 'chart-gaps-false', fillGaps: false, minSliceAngle: 0.5 },
+      { id: 'chart-gaps-true', fillGaps: true, minSliceAngle: 0.5 }
+    ];
+
+    function render() {
+      const chartWidth = Math.floor(window.innerWidth / 3) - 20;
+      configs.forEach(({ id, fillGaps, minSliceAngle }) => {
+        const el = document.getElementById(id);
+        el.innerHTML = '';
+        new Sunburst(el)
+          .data(data)
+          .minSliceAngle(minSliceAngle)
+          .fillGaps(fillGaps)
+          .width(chartWidth)
+          .height(chartWidth);
+      });
+    }
+
+    render();
+    window.addEventListener('resize', render);
+  </script>
+</body>
