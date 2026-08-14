@@ -26,7 +26,7 @@ export default Kapsule({
     label: { default: d => d.name },
     labelOrientation: { default: 'auto' }, // angular, radial, auto
     size: { default: 'value', onChange(_, state) { state.needsReparse = true }},
-    countDirectly: { default: false, onChange(_, state) { state.needsReparse = true }},
+    valueCountMethod: { default: 'node-sum', onChange(_, state) { state.needsReparse = true }},
     level: { onChange(_, state) { state.needsReparse = true }},
     levelSpan: { default: 1, onChange(_, state) { state.needsReparse = true }},
     color: { default: d => 'lightgrey' },
@@ -72,12 +72,20 @@ export default Kapsule({
         const hierData = d3Hierarchy(state.data, accessorFn(state.children));
 
         const sizeAccessor = accessorFn(state.size);
-        if (state.countDirectly) {
+        const childrenAccessor = accessorFn(state.children);
+
+        if (state.valueCountMethod === 'direct') {
           hierData.each(d => {
             d.value = +sizeAccessor(d.data);
           });
         } else {
-          hierData.sum(sizeAccessor);
+          hierData.sum(d => {
+            const children = childrenAccessor(d);
+            const isLeaf = !children || children.length === 0;
+            return (state.valueCountMethod === 'leaf-only' && !isLeaf)
+              ? 0
+              : +sizeAccessor(d);
+          });
         }
 
         const levelOf = accessorFn(state.level);

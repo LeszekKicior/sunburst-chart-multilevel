@@ -8,8 +8,8 @@
   <div id="chart"></div>
 
   <script>
-    // Example demonstrating the `countDirectly` prop which allows using
-    // pre-calculated cumulative values from the data, instead of summing them.
+    // Example demonstrating the `valueCountMethod` prop set to 'direct', which
+    // allows using pre-calculated cumulative values from the data, instead of summing them.
     
     const data = {
       name: 'Root',
@@ -40,7 +40,7 @@
     new Sunburst(document.getElementById('chart'))
       .data(data)
       .size('value')
-      .countDirectly(true) // Use the 'value' property directly
+      .valueCountMethod('direct') // Use the 'value' property directly
       .showValueInTooltip(true);
   </script>
 </body>

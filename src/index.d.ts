@@ -48,8 +48,8 @@ declare class SunburstChart {
   label(textAccessor: NodeAccessor<string>): SunburstChart;
   size(): NodeAccessor<string>;
   size(sizeAccessor: NodeAccessor<string>): SunburstChart;
-  countDirectly(): boolean;
-  countDirectly(countDirectly: boolean): SunburstChart;
+  valueCountMethod(): 'node-sum' | 'direct' | 'leaf-only';
+  valueCountMethod(method: 'node-sum' | 'direct' | 'leaf-only'): SunburstChart;
   level(): NodeAccessor<number>;
   level(levelAccessor: NodeAccessor<number>): SunburstChart;
   levelSpan(): NodeAccessor<number>;

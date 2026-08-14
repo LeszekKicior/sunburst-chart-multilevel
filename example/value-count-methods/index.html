@@ -1,0 +1,86 @@
+<head>
+  <script src="//cdn.jsdelivr.net/npm/sunburst-chart"></script>
+<!--  <script src="../../dist/sunburst-chart.js"></script>-->
+
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    .container { display: flex; flex-direction: row; justify-content: space-around; width: 100vw; height: 100vh; }
+    .chart-box { flex: 1; display: flex; flex-direction: column; align-items: center; border-right: 1px solid #ccc; }
+    .chart-box:last-child { border-right: none; }
+    .chart { width: 100%; flex: 1; }
+    h2 { margin-top: 20px; margin-bottom: 5px; }
+    .description { padding: 0 10px 10px 10px; font-size: 14px; text-align: center; color: #666; }
+    .data-info { padding: 10px; font-size: 12px; background: #f9f9f9; border-bottom: 1px solid #eee; width: 100%; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="chart-box">
+      <h2>node-sum</h2>
+      <div class="description">Value = own + all descendants (default)</div>
+      <div class="data-info">
+        <b>Data structure:</b><br/>
+        Root (100)<br/>
+        &nbsp;&nbsp;├─ Branch A (20)<br/>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├─ Leaf A1 (30)<br/>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└─ Leaf A2 (40)<br/>
+        &nbsp;&nbsp;└─ Leaf B (50)
+      </div>
+      <div id="chart-node-sum" class="chart"></div>
+    </div>
+    <div class="chart-box">
+      <h2>direct</h2>
+      <div class="description">Value = own value only, ignores children</div>
+      <div id="chart-direct" class="chart"></div>
+    </div>
+    <div class="chart-box">
+      <h2>leaf-only</h2>
+      <div class="description">Value = sum of leaf descendants only</div>
+      <div id="chart-leaf-only" class="chart"></div>
+    </div>
+  </div>
+
+  <script>
+    const data = {
+      name: 'Root',
+      value: 100,
+      children: [
+        {
+          name: 'Branch A',
+          value: 20,
+          children: [
+            { name: 'Leaf A1', value: 30 },
+            { name: 'Leaf A2', value: 40 }
+          ]
+        },
+        {
+          name: 'Leaf B',
+          value: 50
+        }
+      ]
+    };
+
+    const charts = [
+      { id: 'chart-node-sum', method: 'node-sum' },
+      { id: 'chart-direct', method: 'direct' },
+      { id: 'chart-leaf-only', method: 'leaf-only' }
+    ];
+
+    function render() {
+      charts.forEach(({ id, method }) => {
+        const el = document.getElementById(id);
+        el.innerHTML = ''; // Clear previous
+        new Sunburst(el)
+          .data(data)
+          .size('value')
+          .valueCountMethod(method)
+          .showValueInTooltip(true)
+          .width(500)
+          .height(500);
+      });
+    }
+
+    render();
+    window.addEventListener('resize', render);
+  </script>
+</body>
