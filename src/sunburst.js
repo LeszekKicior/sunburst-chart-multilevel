@@ -63,6 +63,7 @@ export default Kapsule({
     onClick: { triggerUpdate: false },
     onRightClick: { triggerUpdate: false },
     onHover: { triggerUpdate: false },
+    nodeId: { onChange(_, state) { state.needsReparse = true }},
     transitionDuration: { default: 750, triggerUpdate: false }
   },
 
@@ -154,8 +155,12 @@ export default Kapsule({
           state.levelToY = level => levelToY(level);
         }
 
+        const nodeIdOf = accessorFn(state.nodeId);
         hierData.descendants().forEach((d, i) => {
-          d.id = i; // Mark each node with a unique ID
+          d.id = nodeIdOf(d.data, d.parent);
+          if (d.id === undefined || d.id === null) {
+            d.id = i;
+          }
           d.data.__dataNode = d; // Dual-link data nodes
         });
 
@@ -371,7 +376,15 @@ export default Kapsule({
       .style('opacity', d => isVisibleDepth(d) ? 1 : 0);
 
     allSlices.select('path.main-arc').transition(transition)
-      .attrTween('d', d => () => state.arc(d))
+      .attrTween('d', function(d) {
+        const prev = this._current || d;
+        const i = d3Interpolate(
+          { x0: prev.x0, x1: prev.x1, y0: prev.y0, y1: prev.y1 },
+          { x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 }
+        );
+        this._current = { x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 };
+        return t => state.arc(i(t));
+      })
       .style('stroke', d => strokeColorOf(d.data, d.parent))
       .style('fill', d => colorOf(d.data, d.parent));
 
@@ -380,7 +393,15 @@ export default Kapsule({
 
     if (computeAngularLabels) {
       allSlices.select('path.hidden-arc').transition(transition)
-        .attrTween('d', d => () => middleArcLine(d));
+        .attrTween('d', function(d) {
+          const prev = this._current || d;
+          const i = d3Interpolate(
+            { x0: prev.x0, x1: prev.x1, y0: prev.y0, y1: prev.y1 },
+            { x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 }
+          );
+          this._current = { x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 };
+          return t => middleArcLine(i(t));
+        });
     }
 
     // Ensure propagation of data to labels children
@@ -492,7 +513,15 @@ export default Kapsule({
           if (!meta) return () => '';
           return () => meta.label;
         })
-        .attrTween('transform', d => () => radialTextTransform(d));
+        .attrTween('transform', function(d) {
+          const prev = this._current || d;
+          const i = d3Interpolate(
+            { x0: prev.x0, x1: prev.x1, y0: prev.y0, y1: prev.y1 },
+            { x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 }
+          );
+          this._current = { x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 };
+          return t => radialTextTransform(i(t));
+        });
 
     //
 

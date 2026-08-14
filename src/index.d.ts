@@ -44,6 +44,8 @@ declare class SunburstChart {
   data(rootNode: Node): SunburstChart;
   children(): NodeAccessor<Node[]>;
   children(childrenAccessor: NodeAccessor<Node[]>): SunburstChart;
+  nodeId(): NodeAccessor<string | number>;
+  nodeId(nodeIdAccessor: NodeAccessor<string | number>): SunburstChart;
   label(): NodeAccessor<string>;
   label(textAccessor: NodeAccessor<string>): SunburstChart;
   size(): NodeAccessor<string>;
