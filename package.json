@@ -31,10 +31,12 @@
     "svg"
   ],
   "author": "LeszekKicior (https://github.com/LeszekKicior)",
-  "contributors": [{
-    "name": "Original author: Vasco Asturiano",
-    "url": "https://github.com/vasturiano"
-  }],
+  "contributors": [
+    {
+      "name": "Original author: Vasco Asturiano",
+      "url": "https://github.com/vasturiano"
+    }
+  ],
   "bugs": {
     "url": "https://github.com/LeszekKicior/sunburst-chart-multilevel/issues"
   },
@@ -44,7 +46,8 @@
   "scripts": {
     "build": "rimraf dist && rollup -c",
     "dev": "rollup -w -c rollup.config.dev.js",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test": "vitest run"
   },
   "dependencies": {
     "accessor-fn": "1",
@@ -65,12 +68,14 @@
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
+    "jsdom": "^29.1.1",
     "postcss": "^8.5.3",
     "rimraf": "^6.0.1",
     "rollup": "^4.36.0",
     "rollup-plugin-dts": "^6.2.0",
     "rollup-plugin-postcss": "^4.0.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^4.1.10"
   },
   "engines": {
     "node": ">=12"
