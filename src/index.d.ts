@@ -65,6 +65,8 @@ declare class SunburstChart {
 
   minSliceAngle(): number;
   minSliceAngle(degrees: number): SunburstChart;
+  fillGaps(): boolean;
+  fillGaps(fill: boolean): SunburstChart;
   maxLevels(): number;
   maxLevels(degrees: number): SunburstChart;
   maxNodeLevel(): number;
